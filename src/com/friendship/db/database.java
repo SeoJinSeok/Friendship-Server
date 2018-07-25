@@ -47,19 +47,16 @@ public class database {
 		try{
 			JSONObject jobj = new JSONObject(URLDecoder.decode(Decode(req, "user-login-process"), "UTF-8"));
 			String ID = jobj.getString("email"), PWD = jobj.getString("password");
-			ResultSet rs = connect.prepareStatement("select email,password from user").executeQuery();
+			ResultSet rs = connect.prepareStatement("select id from user where email='" + ID +"' and password='" + PWD + "'").executeQuery();
 
-			while(rs.next()){
-				if (rs != null && ID.equals(rs.getString(1))){
-					if (rs != null && PWD.equals(rs.getString(2))){
-						String id = rs.getString(1);
-						connect.close();
-						return id;
-					}
-				}
+			if (!rs.next()){
+				connect.close();
+				return null;
+			}else{
+				connect.close();
+				return rs.getString(1);
 			}
-			connect.close();
-			return null;
+			
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;
@@ -69,7 +66,6 @@ public class database {
 	// 회원 가입
 	public String SignUp(String obj){
 		String [] tables = {"email", "password"};
-		int index = 0;
 		try{
 			JSONObject jobj = new JSONObject(URLDecoder.decode(Decode(obj, "user-signup-process"), "UTF-8"));
 			connect = conn();
@@ -81,18 +77,14 @@ public class database {
 				return null;
 			}
 
-			st = connect.prepareStatement("insert into user values(0, ?, ?, NULL, NULL, 'default.png', NULL, 0, NULL, 0, NULL, NULL, NULL, ?, 0)");
-			while(index < tables.length)	st.setString(index + 1, jobj.getString(tables[index++]));
+			String email = jobj.getString("email"), pwd = jobj.getString("password");
+			st = connect.prepareStatement("insert into user values(0, '" + email + "', '" + pwd + "', NULL, NULL, 'default.png', NULL, 0, NULL, 0, NULL, NULL, NULL, ?, 0)");
+			
 			SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			st.setString(index + 1, transFormat.format(new Date()));
-			if (!st.execute()){
-				System.out.println("가입 성공");
-				return jobj.getString("email");
-			}
-			else{
-				System.out.println("가입 실패");
-				return null;
-			}
+			st.setString(1, transFormat.format(new Date()));
+			
+			if (!st.execute())	return jobj.getString("email");
+			else	return null;
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;
@@ -163,8 +155,7 @@ public class database {
 
 		try{
 			connect = conn();
-			PreparedStatement st = connect.prepareStatement("select Nickname,Prof_url,Intro,Birth,Sex,Favorites,Region,JoinMoims from user where id=?");
-			st.setString(1, id);
+			PreparedStatement st = connect.prepareStatement("select Nickname,Prof_url,Intro,Birth,Sex,Favorites,Region,JoinMoims from user where id=" + id);
 			ResultSet rs = st.executeQuery();
 			rs.next();
 			int j = 0;
@@ -203,29 +194,9 @@ public class database {
 				index++;
 			}
 			st.setObject(index, id);
-			int success = st.executeUpdate();
+			st.executeUpdate();
 			connect.close();
-			if (success > 0)	return true;
-			else	return false;
-		}catch(Exception e){
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	// 모임 가입 여부
-	public boolean isJoin(String mid, String id){
-		try{
-			connect = conn();
-			PreparedStatement st = connect.prepareStatement("select Members from moim where id = " + mid);
-			ResultSet rs = st.executeQuery();
-			rs.next();
-			JSONArray jarr = new JSONArray(rs.getString(1));
-
-			for (int i=0; i<jarr.length(); i++){
-				if (jarr.getJSONObject(i).get("id").equals(id))	return true;
-			}
-			return false;
+			return true;
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
@@ -256,14 +227,15 @@ public class database {
 				ResultSet rs = connect.prepareStatement("select id from moim where name=\'" + jobj.get(MoimParams[0])+ "\'").executeQuery();
 				rs.next();
 				mid = rs.getInt(1);
+				JSONArray a = new JSONArray();
 				JSONObject u = new JSONObject();
 				u.put("id", id);
 				u.put("lev", 1);
-				int success = connect.prepareStatement("update moim set Img_url='moim/"+ mid + "/main.png', " + "Members=" + "\'" + u.toString() + "\'" + "where id=" + mid).executeUpdate();
+				a.put(0, u);
+				connect.prepareStatement("update moim set Img_url='moim/"+ mid + "/main.png', " + "Members=" + "\'" + a.toString() + "\'" + "where id=" + mid).executeUpdate();
 				saveFile(jobj.getString(MoimParams[3]), "moim/" + mid + "/main.png");
 				connect.close();
-				if (success < 1)	return false;
-				else	return true;
+				return true;
 			}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -277,7 +249,7 @@ public class database {
 		try{
 			JSONObject jobj = new JSONObject(URLDecoder.decode(Decode(req, "setting-moim-objects"), "UTF-8"));
 			connect = conn();
-			PreparedStatement st = connect.prepareStatement("update moim set title=?, onecomment=?, content=?, limit=?, region=?, category=?, agelow=?, agehigh=?, alarm=? where id=" + mid);
+			PreparedStatement st = connect.prepareStatement("update moim set title=?, oneintro=?, desc=?, img_url=?, max_member=?, region=?, category=?, agel=?, ageh=?, members=? where id=" + mid);
 			while(index < MoimParams.length + 1){
 				if (MoimParams[index-1].equals("back")){
 					saveFile(jobj.getString(MoimParams[index-1]), ("moim/" + mid+ "/icon.png"));
@@ -285,13 +257,8 @@ public class database {
 				}
 				st.setObject(index, jobj.get(MoimParams[index-1]));
 			}
-			if (st.executeUpdate() > 0){
-				connect.close();
-				return true;
-			}else{
-				connect.close();
-				return false;
-			}
+			st.executeUpdate();
+			return true;
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
@@ -299,25 +266,47 @@ public class database {
 	}
 
 	// 모임 조회
-	public String MoimInfo(String mid){
-		String [] JMoimParams = { "title", "onecomm", "content", "back", "limit", "regi", "cate", "num", "mem"}; // 가입 시 보여지는 정보에 대한 파라미터 
+	public String MoimInfo(String mid, String id){
+		String [] JMoimParams = { "title", "onecomm", "content", "back", "limit", "regi", "cate", "mem", "board"}; // 가입 시 보여지는 정보에 대한 파라미터
+		int i = 0, j = 0;
 		try{
 			connect = conn();
 			JSONObject jobj = new JSONObject();
+			jobj.put("isJoin", false);
 			ResultSet rs = connect.prepareStatement("select * from moim where id=" + mid).executeQuery();
 			rs.next();
-			int i = 0;
-			while(i < JMoimParams.length){
+			while(i < JMoimParams.length-1){
 				// 모임 이미지 읽기
 				if (i == 3)	jobj.put(JMoimParams[i], readFile(rs.getString(i+2)));
 				// 모임 멤버 읽기
-				else if (i == 8){
-					JSONArray objs = new JSONArray(rs.getString(i+2));
+				else if (i == 7){
+					JSONArray objs = new JSONArray(rs.getString(i+4));
+					for (int a=0; a<objs.length(); a++){
+						if (objs.getJSONObject(a).get("id").equals(id)){
+							jobj.put("isJoin", true);
+							break;
+						}
+					}
 					jobj.put(JMoimParams[i], MemList(objs));
 				}
 				else	jobj.put(JMoimParams[i], rs.getString(i+2));
 				i++;
 			}
+			connect.close();
+			
+			// 모임 게시판 불러오기
+			connect = conn();
+			rs = connect.prepareStatement("select Title,Content,Writer,Write_Time from moim_board where Moim_id=" + mid).executeQuery();
+			JSONArray jarr = new JSONArray();
+			while(rs.next()){
+				JSONObject b = new JSONObject();
+				b.put("title", rs.getString(1));
+				b.put("content", rs.getString(2));
+				b.put("writer", rs.getString(3));
+				b.put("wtime", rs.getString(4));
+				jarr.put(j++, b);
+			}
+			jobj.put(JMoimParams[i], jarr.toString());
 			connect.close();
 			return Encode(jobj.toString(), 1, "getting-moim-info");
 		}catch(Exception e){
@@ -326,7 +315,7 @@ public class database {
 		}
 	}
 
-	// 모임 멤버 리스트
+	// 모임 멤버 리스트 불러오기
 	private String MemList(JSONArray mem){
 		try{
 			connect = conn();
@@ -344,7 +333,7 @@ public class database {
 				lev[i] = j.getInt("lev");
 				i++;
 			}
-			ResultSet rs = connect.prepareStatement("select id, nickname, icon, comment from user where id = \'" + id.replace(",", "or") + "\'").executeQuery();
+			ResultSet rs = connect.prepareStatement("select id, nickname, Prof_url, Intro from user where id = \'" + id.replace(",", "or") + "\'").executeQuery();
 			rs.next();
 			i = 0;
 			while(rs.next()){
@@ -378,7 +367,7 @@ public class database {
 			else 	return null;
 			
 			jarr = new JSONArray();
-			PreparedStatement st = connect.prepareStatement("select id, title, onecomment, background, mem_num from moim where id=" + arr);
+			PreparedStatement st = connect.prepareStatement("select id, name, oneintro, img_url from moim where id=" + arr);
 			rs = st.executeQuery();
 			while(rs.next()){
 				jobj = new JSONObject();
@@ -396,28 +385,27 @@ public class database {
 		}
 	}
 
-	// 모임 가입 / 탈퇴
-	public boolean JQMoim(String mid, String req, String id){
+	// 모임 가입 / 탈.강퇴
+	public boolean JQMoim(String mid, int jq, String id){
 		try{
 			boolean isJoin;
 			connect = conn();
-			JSONObject jobj = new JSONObject(Decode(req, "join-or-quit-moim"));
+			JSONObject jobj = null;
 
-			// ID 정보가 없을 시 추가
-			if (!jobj.getJSONObject("info").isNull("id")) id = jobj.getJSONObject("info").getString("id");
-
-			// 모임 가입인지 강퇴인지 확인
-			if (jobj.getInt("join") == 0)	isJoin = false;
-			else	isJoin = true;
+			// 모임 가입, 탈/강퇴인지 확인
+			if (jq == 0)	isJoin = false;
+			else{
+				isJoin = true;
+				jobj = new JSONObject();
+				jobj.put("id", id);
+				jobj.put("lev", 3);
+			}
 
 			// 가입 시 DB에 추가, 강퇴시 DB에 삭제
 			ResultSet rs = connect.prepareStatement("select Members from moim where id=" + mid).executeQuery();
 			rs.next();
-			JSONArray mlist = new JSONArray();
-			if (isJoin){
-				if (rs.getString(1) == null)	mlist.put(0, jobj.get("info"));
-				else	mlist.put(mlist.length(), jobj.get("info"));
-			}
+			JSONArray mlist = new JSONArray(rs.getString(1));
+			if (isJoin)	mlist.put(mlist.length(), jobj);
 			else{
 				for (int i=0; i<mlist.length(); i++){
 					if (mlist.getJSONObject(i).getString("id").equals(id)){
@@ -433,17 +421,20 @@ public class database {
 			String jlist = new String();
 			if (isJoin){
 				if (rs.getString(1) == null)	jlist = String.valueOf(mid);
-				else	jlist = rs.getString(1).concat("," + String.valueOf(mid));
-			}else	jlist.replace(String.valueOf(mid), null);
+				else	jlist = rs.getString(1) + "," + mid;
+			}else{
+				jlist = rs.getString(1);
+				jlist = jlist.substring(jlist.indexOf(mid)-1, jlist.indexOf(mid));
+			}
 
 			// 모임 정보 업데이트
-			if (connect.prepareStatement("update moim set Members='" + mlist.toString() + "', mem_num=" + mlist.length() + " where id=" + mid).executeUpdate() < 1){
+			if (connect.prepareStatement("update moim set Members='" + mlist.toString() + "' where id=" + mid).executeUpdate() < 1){
 				connect.close();
 				return false;
 			}
 			
 			int success = connect.prepareStatement("update user set joinmoims='" + jlist + "' where id=" + id).executeUpdate();
-			if (jobj.isNull("isNew"))	connect.close();
+			connect.close();
 			if (success > 0)	return true;
 			else	return false;
 		}catch(Exception e){

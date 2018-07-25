@@ -5,17 +5,21 @@
     pageEncoding="UTF-8"%>
 <%! 
 	database db = null;
-	int id = 0;
-	String str = null, jq = null;
+	String str = null, id = null;
+	int jq = -1;
 	Main main = null;
 %>
 <%
 	db = new database();
-	if (request.getMethod() == "GET"){
+	if (request.getMethod().equals("GET")){
 		str = request.getParameter("mid");
-		jq = request.getParameter("jqid");
-		if (jq == null)	out.print(db.MoimInfo(str));
-		else	out.print(db.JQMoim(str, jq, request.getHeader("member_no").toString()));
+		if (request.getParameter("jq") != null)	jq = Integer.parseInt(request.getParameter("jq"));
+		
+		if (request.getParameter("id") != null)	id = request.getParameter("id");
+		else	id = request.getHeader("member_no");
+		
+		if (jq == -1)	out.print(db.MoimInfo(str, id));
+		else	db.JQMoim(str, jq, id);
 	}else{
 		main = new Main();
 		str = main.POST(request);

@@ -14,4 +14,8 @@ public class Main{
 		while(in.ready())	data += in.readLine();
 		return data;
 	}
+	
+	public String GET() throws Exception{
+		return "하이";
+	}
 }

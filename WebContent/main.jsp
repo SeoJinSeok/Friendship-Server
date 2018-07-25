@@ -7,7 +7,6 @@
 	database db;
 %>
 <%
-	System.out.println(request.getHeader("member_no"));
 	db = new database();
 	String str = db.GetMain();
 	out.print(str);
