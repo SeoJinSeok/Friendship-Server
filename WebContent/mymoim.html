@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+		button{
+			position: absolute;
+			background: none;
+			border: none;
+			width: 10%;
+			height: 10%;
+			bottom: 0;
+			right:0;
+			margin: 0 5% 0 5%;
+		}
+	</style>
+	<title></title>
+</head>
+<body>
+	<div><image src=./resources/drawable/profile_moimlist.png></image></div>
+	<div class="swiper-container">
+		<div>
+		</div>
+	</div>
+	<div><image src=./resources/drawable/profile_moimlist.png></image></div>
+	<div class="swiper-container">
+		<div>
+		</div>
+	</div>
+	<div><image src=./resources/drawable/profile_moimlist.png></image></div>
+	<div class="swiper-container">
+		<div>
+		</div>
+	</div>
+</body>
+<script src="./_include/dist/js/swiper.min.js"></script>
+<script type="text/javascript">
+	var i =0;
+	var swiper = new Swiper('.swiper-container', {
+		on: {
+			slideNextTransitionStart : function(){
+				if (i < 9)	i++;
+				document.getElementById('top_title').write("ㅎㅇ");
+				document.getElementById('top_intro').write("ㅎㅇ");
+				document.getElementById('top_mem').write(i + "명");
+			},
+			slidePrevTransitionStart: function(){
+				if (i > 0)	i--;
+			},
+		}
+	});
+</script>
+</html>

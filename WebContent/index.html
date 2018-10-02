@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="UTF-8">
+	<title> Friendship Main </title>
+</head>
+<style type="text/css">
+	div{
+		background-size: contain;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+	button, input{
+		background: none;
+		border: none;
+	}
+	iframe{
+		width: 100%;
+		height: 100%;
+		border: none;
+	}
+	image{
+		background-size: contain;
+		background-repeat: no-repeat;
+	}
+	.nav{
+		position: fixed;
+		z-index: 1;
+		top: 0;
+		width: 0%;
+		overflow-x: hidden;
+		transition: 0.5s;
+	}
+	.nav a{
+		position: absolute;
+		right: 2%;
+	}
+	.navprofile{
+		width:250px;
+		height: 250px;
+		background-image: url("./resources/drawable/navmenu_headerbg.jpg");
+	}
+	.navmenu{
+		width: 250px;
+		height: 500px;
+		background-image: url("./resources/drawable/navmenu_bg.jpg");
+	}
+	.nick{
+		text-align: center;
+		margin-top: 85%;
+	}
+	.profileimg{
+		position: absolute;
+		left: 37%;
+		top:15%;
+		width: 65px;
+		height: 65px;
+	}
+	.optionbar{
+		position: absolute;
+		bottom: 5%;
+		right: 5%;
+		width: 10%;
+		height: 10%;
+	}
+</style>
+<body align="center">
+	<div style="height: 20%">
+		<span style="text-align: center; width:20%;cursor: pointer;font-size: 32px;" onclick="openNav()">&#9776;</span>
+		<span style="width: 50%">a</a>
+		<image width="60%" src="./resources/drawable/main_title.png" onclick="switchpage(0);"></image>
+		<span style="width: 50%">a</a>
+		<image width="15%" src="./resources/drawable/main_side.png"></image>
+	</div>
+	<div style="height: 100%; background-image: url('./resources/drawable/main_menu.jpg'); background-size: 100% 150%;">
+		<button style="width: 24%" onclick="switchpage(1);">a</button>
+		<button style="width: 24%" onclick="switchpage(2);">a</button>
+		<button style="width: 24%" onclick="switchpage(3);">a</button>
+		<button style="width: 24%" onclick="switchpage(4);">a</button>
+	</div>
+	<div style="height: 700px;">
+		<iframe id="page" src="main.html"></iframe>
+	</div>
+	<button onclick="option()" class="optionbar">ㅎㅇ</button>
+</body>
+
+<div id="nav" class="nav">
+	<a align="right" href="javascript:void(0)" class="close" onclick="closeNav()">&times;</a>
+	<div class="navprofile">
+		<image id="profileimg" class="profileimg" src="./WEB-INF/images/drawable/prof_back.jpg"></image>
+		<input type="text" id="nick" class="nick" disabled="true" value="닉네임">
+	</div>
+	<div id="navmenu" class="navmenu">
+		<p onclick="switchpage(5)">프로필 수정</p>
+		<p onclick="switchpage(6)">알림</p>
+		<p onclick="switchpage(7)">초대 및 공유</p>
+		<p onclick="switchpage(8)">결제 안내</p>
+		<p onclick="switchpage(9)">설정</p>
+		<p onclick="switchpage(10)">문의하기</p>
+		<p onclick="logout()">로그아웃</p>
+	</div>
+</div>
+
+<script>
+function openNav() {
+  document.getElementById("nav").style.width = "40%";
+}
+
+function closeNav() {
+  document.getElementById("nav").style.width = "0%";
+}
+
+function switchpage(x){
+	var page = document.getElementById('page');
+	if (x==0)	page.src = "main.html";
+	else if (x==1)	page.src = "mymoim.html";
+	else if (x==2)	page.src = "chatting.html";
+	else if (x==3)	page.src = "community.html";
+	else if (x==4)	page.src = "search.html";
+	else if (x==5)	location.href = "profilesetting.html";
+	else if (x==6)	page.src = "alarm.html";
+	else if (x==7)	page.src = "invite.html";
+	else if (x==8)	page.src = "pay.html";
+	else if (x==9)	page.src = "setting.html";
+	else if (x==10)	 page.src = "ask.html";
+}
+
+function option(){
+	location.href = "newmoim.html";
+}
+</script>
+</html>
